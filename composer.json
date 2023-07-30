@@ -1,0 +1,31 @@
+{
+    "name": "riseuplabs/image-cropper",
+    "description": "This is an image cropper",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "RiseUpLabs\\ImageCropper\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "OSHIT SD",
+            "email": "oshitsd99@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "RiseUpLabs\\ImageCropper\\ImageCropperServiceProvider"
+            ],
+            "aliases": {
+                "ImageCrop": "RiseUpLabs\\ImageCropper\\Facades\\ImageCrop"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "require-dev": {
+        "orchestra/testbench": "6.x-dev"
+    }
+}

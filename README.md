@@ -8,6 +8,24 @@ Released under [MIT](/LICENSE) by [@oshit-sd](https://github.com/oshit-sd).
 # Instruction
 
 ```php
+// config filesystems.php 
+'public_path' => [
+    'driver' => 'local',
+    'root' => public_path('uploads'),
+    'url' => public_path('/'),
+],
+```
+
+```console
+// use your driver in (.env) file
+FILESYSTEM_DRIVER=public_path
+
+// If you use storage path in FILESYSTEM_DRIVER
+// please run this command
+php artisan storage:link
+```
+
+```php     
 # Using namespace
 use RiseUpLabs\ImageCropper\Facades\ImageCrop;
 
@@ -33,7 +51,7 @@ class ImageCropController extends Controller
          * @param $folder_path ex: photos or album/photos
          * @param $this->resizeArr (optional)
          */ 
-        $image_path = ImageCrop::original($request->file, "photos", $this->resizeArr);
+        $image_path = ImageCrop::perfect($request->file, "photos", $this->resizeArr);
         return $image_path;
     }
 }

@@ -5,7 +5,14 @@ This package includes converting image compress, multiple image resizers;
 
 Released under [MIT](/LICENSE) by [@oshit-sd](https://github.com/oshit-sd).
 
-# Instruction
+# Installation
+
+You can install the package in to a Laravel project that uses ImageCrop via composer:
+
+```bash
+composer require riseuplabs/image-cropper
+```
+
 
 ```php
 // config filesystems.php 
@@ -16,7 +23,7 @@ Released under [MIT](/LICENSE) by [@oshit-sd](https://github.com/oshit-sd).
 ],
 ```
 
-```console
+```php
 // use your driver in (.env) file
 FILESYSTEM_DRIVER=public_path
 
@@ -32,7 +39,7 @@ use RiseUpLabs\ImageCropper\Facades\ImageCrop;
 // in the controller just define resizes array if you have to resize an image in multiple pieces
 class ImageCropController extends Controller
 {
-    // preferable sizes define for upload image
+    // preferred size is set for uploading images
     private $resizeArr = [
         ["width" => 50, "height" => 50],
         ["width" => 100, "height" => 100],

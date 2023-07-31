@@ -19,7 +19,7 @@ trait ResizeTrait
      *
      * @return resize_wise_image_url
      */
-    protected function resizer($file, $folder, $original = false, $resize = false)
+    protected function resizer($file, $folder, $original = false, $resize = false, $quality = 20)
     {
         $this->disk = config('filesystems.default');
         $diskRoot = config('filesystems.disks')[$this->disk]['root'] ?? '';
@@ -43,7 +43,7 @@ trait ResizeTrait
             // upload original image compress
             $this->makeDir($folder, 'original_compress');
             $upload_path = "{$diskRoot}/{$folder}/original_compress/";
-            $fileName    = $this->resize_image($file, $upload_path, 100, 100);
+            $fileName    = $this->resize_image($file, $upload_path, 100, 100, $quality);
             $imageUrls += ["original_compress" => "{$folder}/original_compress/" . $fileName];
         }
 
@@ -76,7 +76,7 @@ trait ResizeTrait
     /**
      * Resize Image
      */
-    protected function resize_image($file, $upload_path, $width, $height)
+    protected function resize_image($file, $upload_path, $width, $height, $quality = 100)
     {
         if ((!array_key_exists('errors', $GLOBALS)) || (!is_array($GLOBALS['errors']))) {
             $GLOBALS['errors'] = [];
@@ -108,7 +108,6 @@ trait ResizeTrait
             }
         }
 
-        $quality = 100;
         if ($type == 'force') {
             $new_image = $this->resize_image_force($image, $width, $height);
         } elseif ($type == 'perfect') {
@@ -116,7 +115,6 @@ trait ResizeTrait
         } elseif ($type == 'crop') {
             $new_image = $this->resize_image_crop($image, $width, $height);
         } elseif ($type == 'original_compress') {
-            $quality = 20;
             $new_image = $image;
         }
 

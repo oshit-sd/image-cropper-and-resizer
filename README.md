@@ -61,6 +61,10 @@ class ImageCropController extends Controller
 ## #Upload oiginal image
 
 ```php
+/**
+ * @param $file
+ * @param $folder_path ex: photos or album/photos
+ */ 
 $image_path = ImageCrop::original($request->file, "photos");
 echo $image_path;
 
@@ -71,7 +75,12 @@ echo $image_path;
 ## #Upload original image with compress
 
 ```php
-$image_path = ImageCrop::compress($request->file, "photos");
+/**
+ * @param $file
+ * @param $folder_path ex: photos or album/photos
+ * @param $quality
+ */ 
+$image_path = ImageCrop::compress($request->file, "photos", 20);
 echo $image_path;
 
 # output

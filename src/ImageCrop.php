@@ -28,13 +28,14 @@ class ImageCrop
         return $images['original'] ?? null;
     }
 
-    public function compress($file = null, $folder_path = null)
+    public function compress($file = null, $folder_path = null, $quality = null)
     {
+        throw_unless($quality, Exception::class, "Quality is required", 400);
         throw_unless($file, Exception::class, "File is required", 400);
         throw_unless($folder_path, Exception::class, "Folder path is required", 400);
 
         $this->resize_type = 'original_compress';
-        $images =  $this->resizer($file, $folder_path);
+        $images =  $this->resizer($file, $folder_path, false, false, $quality);
         return $images['original_compress'] ?? null;
     }
 

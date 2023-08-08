@@ -3,6 +3,9 @@
 namespace RiseUpLabs\ImageCropper;
 
 use Exception;
+use Illuminate\Http\UploadedFile;
+use RiseUpLabs\ImageCropper\Classes\OriginalImage;
+use RiseUpLabs\ImageCropper\Classes\ResizerImage;
 use RiseUpLabs\ImageCropper\Traits\ResizeTrait;
 
 class ImageCrop
@@ -12,119 +15,129 @@ class ImageCrop
     public $resize_arr = [];
     public $resize_type = [];
 
+    public $originalImage;
+    public $resizerImage;
+
+    public function __construct()
+    {
+        $this->originalImage    = new OriginalImage();
+        $this->resizerImage     = new ResizerImage();
+    }
+
     /**
      * original image size
      * @param $file
-     * @param $folder_path
+     * @param $folder
      *
-     * @return original_image_url
+     * @return uploaded_path
      */
-    public function original($file = null, $folder_path = null)
+    public function original(UploadedFile $file, string $folder)
     {
-        throw_unless($file, Exception::class, "File is required", 400);
-        throw_unless($folder_path, Exception::class, "Folder path is required", 400);
+        $this->throw_message($file, $folder, [], 'original');
 
-        $images = $this->resizer($file, $folder_path, true);
-        return $images['original'] ?? null;
+        return $this->originalImage->upload($file, $folder);
     }
 
-    public function compress($file = null, $folder_path = null, $quality = null)
+    public function compress(UploadedFile $file, string $folder, int $quality)
     {
+        $this->throw_message($file, $folder, [], 'original');
         throw_unless($quality, Exception::class, "Quality is required", 400);
-        throw_unless($file, Exception::class, "File is required", 400);
-        throw_unless($folder_path, Exception::class, "Folder path is required", 400);
 
-        $this->resize_type = 'original_compress';
-        $images =  $this->resizer($file, $folder_path, false, false, $quality);
-        return $images['original_compress'] ?? null;
+        return $this->originalImage->compress($file, $folder, $quality);
     }
 
     /**
      * perfect image sizes
      * @param $file
-     * @param $folder_path
+     * @param $folder
      * @param $resize_arr
      *
      * @return array_of_images_url
      */
-    public function perfect($file = null, $folder_path = null, $resize_arr = [])
+    public function perfect(UploadedFile $file, string $folder, array $resize_arr = [])
     {
-        $this->throw_message($file, $folder_path, $resize_arr);
+        $this->throw_message($file, $folder, $resize_arr);
 
-        $this->resize_type = 'perfect';
-        return $this->resizer($file, $folder_path, false, true);
+        return $this->resizerImage->resize($file, $folder, $resize_arr, 'perfect');
     }
 
-    public function perfectWithOriginal($file = null, $folder_path = null, $resize_arr = [])
+    public function perfectWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [])
     {
-        $this->throw_message($file, $folder_path, $resize_arr);
+        $this->throw_message($file, $folder, $resize_arr);
 
-        $this->resize_type = 'perfect';
-        return $this->resizer($file, $folder_path, true, true);
+        $resize_paths  = $this->resizerImage->resize($file, $folder, $resize_arr, 'perfect');
+        $resize_paths += ['original' => $this->originalImage->upload($file, $folder)];
+
+        return $resize_paths;
     }
 
     /**
      * force image sizes
      * @param $file
-     * @param $folder_path
+     * @param $folder
      * @param $resize_arr
      *
      * @return array_of_images_url
      */
-    public function force($file = null, $folder_path = null, $resize_arr = [])
+    public function force(UploadedFile $file, string $folder, array $resize_arr = [])
     {
-        $this->throw_message($file, $folder_path, $resize_arr);
+        $this->throw_message($file, $folder, $resize_arr);
 
         $this->resize_type = 'force';
-        return $this->resizer($file, $folder_path, false, true);
+        return $this->resizer($file, $folder, false, true);
     }
 
-    public function forceWithOriginal($file = null, $folder_path = null, $resize_arr = [])
+    public function forceWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [])
     {
-        $this->throw_message($file, $folder_path, $resize_arr);
+        $this->throw_message($file, $folder, $resize_arr);
 
         $this->resize_type = 'force';
-        return $this->resizer($file, $folder_path, true, true);
+        return $this->resizer($file, $folder, true, true);
     }
 
     /**
      * crop image sizes
      * @param $file
-     * @param $folder_path
+     * @param $folder
      * @param $resize_arr
      *
      * @return array_of_images_url
      */
-    public function crop($file = null, $folder_path = null, $resize_arr = [])
+    public function crop(UploadedFile $file, string $folder, array $resize_arr = [])
     {
-        $this->throw_message($file, $folder_path, $resize_arr);
+        $this->throw_message($file, $folder, $resize_arr);
 
         $this->resize_type = 'crop';
-        return $this->resizer($file, $folder_path, false, true);
+        return $this->resizer($file, $folder, false, true);
     }
 
-    public function cropWithOriginal($file = null, $folder_path = null, $resize_arr = [])
+    public function cropWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [])
     {
-        $this->throw_message($file, $folder_path, $resize_arr);
+        $this->throw_message($file, $folder, $resize_arr);
 
         $this->resize_type = 'crop';
-        return $this->resizer($file, $folder_path, true, true);
+        return $this->resizer($file, $folder, true, true);
     }
 
     /**
      * throw_message
      * @param $file
-     * @param $folder_path
+     * @param $folder
      * @param $resize_arr
      *
      * @return array_of_images_url
      */
-    private function throw_message($file = null, $folder_path = null, $resize_arr = [])
+    private function throw_message($file = null, $folder = null, $resize_arr = [], $original = false)
     {
         throw_unless($file, Exception::class, "File is required", 400);
-        throw_unless($folder_path, Exception::class, "Folder path is required", 400);
-        throw_if(empty($resize_arr), Exception::class, "Resize array is required", 400);
+        throw_unless($folder, Exception::class, "Folder path is required", 400);
 
-        $this->resize_arr = $resize_arr;
+        if (!$original)
+            throw_if(empty($resize_arr), Exception::class, "Resize array is required", 400);
+
+        $extension = $file->getClientOriginalExtension();
+        if (!in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif'])) {
+            throw_if(true, Exception::class, "Invalid source file extension, supported ext: jpg, jpeg, png, gif", 400);
+        }
     }
 }

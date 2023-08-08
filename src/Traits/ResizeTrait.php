@@ -12,17 +12,22 @@ use Illuminate\Support\Facades\Storage;
 trait ResizeTrait
 {
     private $disk = null;
+    private $diskRoot = null;
 
     /**
      * Call Resizer Function
-     * @param $type, $file, $folder
+     * @param $file // file
+     * @param $folder_path // string
+     * @param $original_image // bool
+     * @param $resize // bool
+     * @param $quality // integer
      *
      * @return resize_wise_image_url
      */
     protected function resizer($file, $folder, $original = false, $resize = false, $quality = 20)
     {
         $this->disk = config('filesystems.default');
-        $diskRoot = config('filesystems.disks')[$this->disk]['root'] ?? '';
+        $this->diskRoot = config('filesystems.disks')[$this->disk]['root'] ?? '';
 
         $this->makeDir($folder);
 
@@ -42,7 +47,7 @@ trait ResizeTrait
         if ($this->resize_type == 'original_compress') {
             // upload original image compress
             $this->makeDir($folder, 'original_compress');
-            $upload_path = "{$diskRoot}/{$folder}/original_compress/";
+            $upload_path = "{$this->diskRoot}/{$folder}/original_compress/";
             $fileName    = $this->resize_image($file, $upload_path, 100, 100, $quality);
             $imageUrls += ["original_compress" => "{$folder}/original_compress/" . $fileName];
         }
@@ -55,7 +60,7 @@ trait ResizeTrait
                 $this->makeDir($folder, $subFolder);
 
                 // folder path and and resize
-                $upload_path = "{$diskRoot}/{$folder}/{$subFolder}/";
+                $upload_path = "{$this->diskRoot}/{$folder}/{$subFolder}/";
                 $fileName    = $this->resize_image($file, $upload_path, $resize['width'], $resize['height']);
 
                 if (!empty($fileName['errors'])) { // if any error occured
@@ -84,18 +89,16 @@ trait ResizeTrait
         $type = $this->resize_type;
 
         $extension = "." . $file->getClientOriginalExtension();
-        if (!in_array(strtolower($extension), ['.jpg', '.jpeg', '.png', '.gif', '.bmp'])) {
+        if (!in_array(strtolower($extension), ['.jpg', '.jpeg', '.png', '.gif'])) {
             throw_if(true, Exception::class, "Invalid source file extension, supported ext: jpg, jpeg, png, gif", 400);
         }
 
         if (in_array(strtolower($extension), ['.jpg', '.jpeg'])) {
-            $image = @imagecreatefromjpeg($file);
+            $image = imagecreatefromjpeg($file);
         } elseif (strtolower($extension) == '.png') {
-            $image = @imagecreatefrompng($file);
+            $image = imagecreatefrompng($file);
         } elseif (strtolower($extension) == '.gif') {
-            $image = @imagecreatefromgif($file);
-        } elseif (strtolower($extension) == '.bmp') {
-            $image = @imagecreatefromwbmp($file);
+            $image = imagecreatefromgif($file);
         }
 
         if (!$image) {
@@ -122,7 +125,7 @@ trait ResizeTrait
             throw_if(true, Exception::class, "New image could not be generated!", 400);
         }
         if (count($GLOBALS['errors']) > 0) {
-            @imagedestroy($image);
+            imagedestroy($image);
             return $this->counting_errors();
         }
 
@@ -137,20 +140,18 @@ trait ResizeTrait
             imagepng($new_image, $upload_path, $quality) or ($save_error = true);
         } elseif (strtolower($extension) == '.gif') {
             imagegif($new_image, $upload_path) or ($save_error = true);
-        } elseif (strtolower($extension) == '.bmp') {
-            imagewbmp($new_image, $upload_path, $quality) or ($save_error = true);
         }
         if ($save_error) {
             throw_if(true, Exception::class, "New image could not be saved!", 400);
         }
         if (count($GLOBALS['errors']) > 0) {
-            @imagedestroy($image);
-            @imagedestroy($new_image);
+            imagedestroy($image);
+            imagedestroy($new_image);
             return $this->counting_errors();
         }
 
-        @imagedestroy($image);
-        @imagedestroy($new_image);
+        imagedestroy($image);
+        imagedestroy($new_image);
 
         return $fileName;
     }
@@ -203,8 +204,8 @@ trait ResizeTrait
      */
     protected function resize_image_crop($image, $width, $height)
     {
-        $w = @imagesx($image); //current width
-        $h = @imagesy($image); //current height
+        $w = imagesx($image); //current width
+        $h = imagesy($image); //current height
         if ((!$w) || (!$h)) {
             $GLOBALS['errors'][] = 'Image could not be resized because it was not a valid image.';
             return false;
@@ -256,8 +257,8 @@ trait ResizeTrait
      */
     protected function resize_image_force($image, $width, $height)
     {
-        $w = @imagesx($image); //current width
-        $h = @imagesy($image); //current height
+        $w = imagesx($image); //current width
+        $h = imagesy($image); //current height
         if ((!$w) || (!$h)) {
             $GLOBALS['errors'][] = 'Image could not be resized because it was not a valid image.';
             return false;
@@ -288,20 +289,5 @@ trait ResizeTrait
         }
         // return ['errors' => $errors];
         throw_if(true, Exception::class, "An error occurred while processing croping image, please try again", 400);
-    }
-
-    /*-----Folder Create-----*/
-    public function makeDir($folder, $subfolder = null)
-    {
-        $diskRoot = config('filesystems.disks')[$this->disk]['root'] ?? '';
-
-        $main_dir = "{$diskRoot}/{$folder}";
-        if ($subfolder) {
-            $main_dir = "{$diskRoot}/{$folder}/{$subfolder}";
-        }
-
-        if (!file_exists($main_dir)) {
-            mkdir($main_dir, 0777, true);
-        }
     }
 }

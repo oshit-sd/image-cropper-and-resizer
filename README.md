@@ -17,9 +17,9 @@ composer require riseuplabs/image-cropper
 ```php
 // config filesystems.php 
 'public_path' => [
-    'driver' => 'local',
-    'root' => public_path('uploads'),
-    'url' => public_path('/'),
+    'driver'    => 'local',
+    'root'      => public_path('uploads'),
+    'url'       => public_path('/'),
 ],
 ```
 
@@ -28,7 +28,7 @@ composer require riseuplabs/image-cropper
 FILESYSTEM_DRIVER=public_path
 
 // If you use storage path in FILESYSTEM_DRIVER
-// please run this command
+// run this command
 php artisan storage:link
 ```
 
@@ -59,13 +59,16 @@ class ImageCropController extends Controller
          * @param $this->resizeArr (optional)
          */ 
         $image_path = ImageCrop::perfect($request->file, "photos", $this->resizeArr);
+        // $image_path = ImageCrop::force($request->file, "photos", $this->resizeArr);
+        // $image_path = ImageCrop::crop($request->file, "photos", $this->resizeArr);
+        // $image_path = ImageCrop::original($request->file, "photos");
         return $image_path;
     }
 }
 
 ```
 
-## #Upload oiginal image
+## #Upload original image
 
 ```php
 /**
@@ -79,7 +82,7 @@ echo $image_path;
 "photos/original/daHnhY2iZlQkpuFVnB0CfgLpooVBLLoKcu7ynKEe.jpg"
 ```
 
-## #Upload original image with compress
+## #Upload original image with compress quality
 
 ```php
 /**

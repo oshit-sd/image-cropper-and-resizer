@@ -14,7 +14,7 @@ class ResizerImage extends BaseClass
      *
      * @return array
      */
-    public function resize($file, $folder, $resize_arr, $type): array
+    public function resize($file, $folder, $resize_arr, $type, $quality = 100): array
     {
         $uploaded_paths  = [];
 
@@ -39,7 +39,7 @@ class ResizerImage extends BaseClass
                     break;
             }
 
-            $uploaded_path  = $this->imageUpload($file, $new_image, $upload_path);
+            $uploaded_path  = $this->imageUpload($file, $new_image, $upload_path, $quality);
             $uploaded_paths += ["resize_{$width}" => $uploaded_path];
         }
         return $uploaded_paths;

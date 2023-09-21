@@ -6,12 +6,9 @@ use Exception;
 use Illuminate\Http\UploadedFile;
 use RiseUpLabs\ImageCropper\Classes\OriginalImage;
 use RiseUpLabs\ImageCropper\Classes\ResizerImage;
-use RiseUpLabs\ImageCropper\Traits\ResizeTrait;
 
 class ImageCrop
 {
-    use ResizeTrait;
-
     public $resize_arr = [];
     public $resize_type = [];
 
@@ -54,18 +51,18 @@ class ImageCrop
      *
      * @return array_of_images_url
      */
-    public function perfect(UploadedFile $file, string $folder, array $resize_arr = [])
+    public function perfect(UploadedFile $file, string $folder, array $resize_arr = [], int $quality = 100)
     {
         $this->throw_message($file, $folder, $resize_arr);
 
-        return $this->resizerImage->resize($file, $folder, $resize_arr, 'perfect');
+        return $this->resizerImage->resize($file, $folder, $resize_arr, 'perfect', $quality);
     }
 
-    public function perfectWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [])
+    public function perfectWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [], int $quality = 100)
     {
         $this->throw_message($file, $folder, $resize_arr);
 
-        $resize_paths  = $this->resizerImage->resize($file, $folder, $resize_arr, 'perfect');
+        $resize_paths  = $this->resizerImage->resize($file, $folder, $resize_arr, 'perfect', $quality);
         $resize_paths += ['original' => $this->originalImage->upload($file, $folder)];
 
         return $resize_paths;
@@ -79,20 +76,21 @@ class ImageCrop
      *
      * @return array_of_images_url
      */
-    public function force(UploadedFile $file, string $folder, array $resize_arr = [])
+    public function force(UploadedFile $file, string $folder, array $resize_arr = [], int $quality = 100)
     {
         $this->throw_message($file, $folder, $resize_arr);
 
-        $this->resize_type = 'force';
-        return $this->resizer($file, $folder, false, true);
+        return $this->resizerImage->resize($file, $folder, $resize_arr, 'force', $quality);
     }
 
-    public function forceWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [])
+    public function forceWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [], int $quality = 100)
     {
         $this->throw_message($file, $folder, $resize_arr);
 
-        $this->resize_type = 'force';
-        return $this->resizer($file, $folder, true, true);
+        $resize_paths  = $this->resizerImage->resize($file, $folder, $resize_arr, 'force', $quality);
+        $resize_paths += ['original' => $this->originalImage->upload($file, $folder)];
+
+        return $resize_paths;
     }
 
     /**
@@ -103,20 +101,21 @@ class ImageCrop
      *
      * @return array_of_images_url
      */
-    public function crop(UploadedFile $file, string $folder, array $resize_arr = [])
+    public function crop(UploadedFile $file, string $folder, array $resize_arr = [], int $quality = 100)
     {
         $this->throw_message($file, $folder, $resize_arr);
 
-        $this->resize_type = 'crop';
-        return $this->resizer($file, $folder, false, true);
+        return $this->resizerImage->resize($file, $folder, $resize_arr, 'crop', $quality);
     }
 
-    public function cropWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [])
+    public function cropWithOriginal(UploadedFile $file, string $folder, array $resize_arr = [], int $quality = 100)
     {
         $this->throw_message($file, $folder, $resize_arr);
 
-        $this->resize_type = 'crop';
-        return $this->resizer($file, $folder, true, true);
+        $resize_paths  = $this->resizerImage->resize($file, $folder, $resize_arr, 'crop', $quality);
+        $resize_paths += ['original' => $this->originalImage->upload($file, $folder)];
+
+        return $resize_paths;
     }
 
     /**
